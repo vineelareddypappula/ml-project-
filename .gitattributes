@@ -1,2 +1,67 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+import pandas as pd
+import numpy as np
+from matplotlib import pyplot as plt
+df = pd.read_csv("adult.csv")
+df
+column_names = ["Age","work class","Fnlwgt", "Education", "Education_number", "martial_status", "occupation" ,"relationship" ,"race","sex","capital_gain","capital_loss","hours_per_week","native_country","income"]
+df.columns = column_names
+df
+df1 = df.dropna()
+X = df1.drop('income',axis='columns')
+y = df1.income
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+X["workClass"] = le.fit_transform(X['work class'])
+X["Education1"] = le.fit_transform(X['Education'])
+X["sex1"] = le.fit_transform(X['sex'])
+X["martial_status1"] = le.fit_transform(X['martial_status'])
+X["occupation1"] = le.fit_transform(X['occupation'])
+X["relationship1"] = le.fit_transform(X['relationship'])
+X["race1"] = le.fit_transform(X['race'])
+X["native_country1"] = le.fit_transform(X['native_country'])
+X1 = X.drop( ["work class","sex", "Education", "martial_status", "occupation" ,"relationship" ,"race","native_country"],axis='columns')
+X1
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X1,y,test_size=0.2)
+# Logistic Regression
+lr = LogisticRegression()
+lr.fit(X_train,y_train)
+y_predicted = lr.predict(X_test)
+y_predicted
+lr.score(X_test,y_test)
+from sklearn.metrics import confusion_matrix
+cm = confusion_matrix(y_test,y_predicted)
+cm
+import seaborn as sn
+plt.figure(figsize = (10,7))
+sn.heatmap(cm, annot=True)
+plt.xlabel('Predicted')
+plt.ylabel('Truth')
+#decision tree
+from sklearn import tree
+model = tree.DecisionTreeClassifier()
+model.fit(X_train, y_train)
+model.score(X_test, y_test)
+y_predTree = model.predict(X_test)
+y_predTree
+cm1 = confusion_matrix(y_test,y_predTree)
+cm1
+import seaborn as sn
+plt.figure(figsize = (10,7))
+sn.heatmap(cm1, annot=True)
+plt.xlabel('Predicted')
+plt.ylabel('Truth')
+#Random Forest classifier
+from sklearn.ensemble import RandomForestClassifier
+model1 = RandomForestClassifier(n_estimators=20)
+model1.fit(X_train, y_train)
+model1.score(X_test, y_test)
+y_pred2 = model1.predict(X_test)
+cm2 = confusion_matrix(y_test, y_pred2)
+cm2
+import seaborn as sn
+plt.figure(figsize = (10,7))
+sn.heatmap(cm2, annot=True)
+plt.xlabel('Predicted')
+plt.ylabel('Truth')
