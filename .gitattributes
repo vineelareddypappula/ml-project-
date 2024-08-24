@@ -1,16 +1,33 @@
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
-df = pd.read_csv("adult.csv")
-df
-column_names = ["Age","work class","Fnlwgt", "Education", "Education_number", "martial_status", "occupation" ,"relationship" ,"race","sex","capital_gain","capital_loss","hours_per_week","native_country","income"]
-df.columns = column_names
-df
-df1 = df.dropna()
-X = df1.drop('income',axis='columns')
-y = df1.income
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix
+from sklearn import tree
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import LinearSVC
+from sklearn.neighbors import KNeighborsClassifier
+import seaborn as sn
+
+# Load the dataset
+df = pd.read_csv("adult.csv")
+
+# Rename the columns
+column_names = ["Age","work class","Fnlwgt", "Education", "Education_number", 
+                "martial_status", "occupation" ,"relationship" ,"race","sex",
+                "capital_gain","capital_loss","hours_per_week","native_country","income"]
+df.columns = column_names
+
+# Drop missing values
+df1 = df.dropna()
+
+# Prepare the data for modeling
+X = df1.drop('income', axis='columns')
+y = df1.income
+
+# Label encode categorical variables
 le = LabelEncoder()
 X["workClass"] = le.fit_transform(X['work class'])
 X["Education1"] = le.fit_transform(X['Education'])
@@ -20,48 +37,90 @@ X["occupation1"] = le.fit_transform(X['occupation'])
 X["relationship1"] = le.fit_transform(X['relationship'])
 X["race1"] = le.fit_transform(X['race'])
 X["native_country1"] = le.fit_transform(X['native_country'])
-X1 = X.drop( ["work class","sex", "Education", "martial_status", "occupation" ,"relationship" ,"race","native_country"],axis='columns')
-X1
-from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X1,y,test_size=0.2)
+
+# Drop the original categorical columns
+X1 = X.drop(["work class", "sex", "Education", "martial_status", 
+             "occupation", "relationship", "race", "native_country"], axis='columns')
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X1, y, test_size=0.2)
+
 # Logistic Regression
 lr = LogisticRegression()
-lr.fit(X_train,y_train)
+lr.fit(X_train, y_train)
 y_predicted = lr.predict(X_test)
-y_predicted
-lr.score(X_test,y_test)
-from sklearn.metrics import confusion_matrix
-cm = confusion_matrix(y_test,y_predicted)
-cm
-import seaborn as sn
-plt.figure(figsize = (10,7))
+print("Logistic Regression Score:", lr.score(X_test, y_test))
+
+# Confusion Matrix and Classification Report for Logistic Regression
+cm = confusion_matrix(y_test, y_predicted)
+plt.figure(figsize=(10,7))
 sn.heatmap(cm, annot=True)
 plt.xlabel('Predicted')
 plt.ylabel('Truth')
-#decision tree
-from sklearn import tree
+plt.title('Confusion Matrix for Logistic Regression')
+plt.show()
+print("Classification Report for Logistic Regression:\n", classification_report(y_test, y_predicted))
+
+# Decision Tree
 model = tree.DecisionTreeClassifier()
 model.fit(X_train, y_train)
-model.score(X_test, y_test)
 y_predTree = model.predict(X_test)
-y_predTree
-cm1 = confusion_matrix(y_test,y_predTree)
-cm1
-import seaborn as sn
-plt.figure(figsize = (10,7))
+print("Decision Tree Score:", model.score(X_test, y_test))
+
+# Confusion Matrix and Classification Report for Decision Tree
+cm1 = confusion_matrix(y_test, y_predTree)
+plt.figure(figsize=(10,7))
 sn.heatmap(cm1, annot=True)
 plt.xlabel('Predicted')
 plt.ylabel('Truth')
-#Random Forest classifier
-from sklearn.ensemble import RandomForestClassifier
+plt.title('Confusion Matrix for Decision Tree')
+plt.show()
+print("Classification Report for Decision Tree:\n", classification_report(y_test, y_predTree))
+
+# Random Forest Classifier
 model1 = RandomForestClassifier(n_estimators=20)
 model1.fit(X_train, y_train)
-model1.score(X_test, y_test)
 y_pred2 = model1.predict(X_test)
+print("Random Forest Score:", model1.score(X_test, y_test))
+
+# Confusion Matrix and Classification Report for Random Forest
 cm2 = confusion_matrix(y_test, y_pred2)
-cm2
-import seaborn as sn
-plt.figure(figsize = (10,7))
+plt.figure(figsize=(10,7))
 sn.heatmap(cm2, annot=True)
 plt.xlabel('Predicted')
 plt.ylabel('Truth')
+plt.title('Confusion Matrix for Random Forest')
+plt.show()
+print("Classification Report for Random Forest:\n", classification_report(y_test, y_pred2))
+
+# SVC
+lsvc = LinearSVC(dual=False)  # Suppress deprecation warning
+lsvc.fit(X_train, y_train)
+y_pred3 = lsvc.predict(X_test)
+print("SVC Score:", lsvc.score(X_test, y_test))
+
+# Confusion Matrix and Classification Report for SVC
+cm3 = confusion_matrix(y_test, y_pred3)
+plt.figure(figsize=(10,7))
+sn.heatmap(cm3, annot=True)
+plt.xlabel('Predicted')
+plt.ylabel('Truth')
+plt.title('Confusion Matrix for SVC')
+plt.show()
+print("Classification Report for SVC:\n", classification_report(y_test, y_pred3))
+
+# KNN Classifier
+classifier = KNeighborsClassifier(n_neighbors=5, metric='minkowski', p=2)
+classifier.fit(X_train, y_train)
+y_pred4 = classifier.predict(X_test)
+print("KNN Classifier Score:", classifier.score(X_test, y_test))
+
+# Confusion Matrix and Classification Report for KNN
+cm4 = confusion_matrix(y_test, y_pred4)
+plt.figure(figsize=(10,7))
+sn.heatmap(cm4, annot=True)
+plt.xlabel('Predicted')
+plt.ylabel('Truth')
+plt.title('Confusion Matrix for KNN')
+plt.show()
+print("Classification Report for KNN:\n", classification_report(y_test, y_pred4))
